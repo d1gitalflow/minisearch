@@ -45,7 +45,7 @@ const storiesReducer = (state, action) => {
         ...state,
         isLoading: false,
         isError: false,
-        data: action.payload.list,
+        data: action.payload.page === 0 ? action.payload.list : state.data.concat(action.payload.list),
         page: action.payload.page,
       };
     case 'STORIES_FETCH_FAILURE':
@@ -112,7 +112,7 @@ const API_BASE = 'https://hn.algolia.com/api/v1';
 const API_SEARCH = '/search';
 const PARAM_SEARCH = 'query=';
 const PARAM_PAGE = 'page=';
-const getUrl = (searchTerm,page) => `${API_BASE}${API_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_PAGE}${page}`;
+const getUrl = (searchTerm, page) => `${API_BASE}${API_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_PAGE}${page}`;
 
 const App = () => {
 
@@ -121,31 +121,31 @@ const App = () => {
   //custom hook
   const [searchTerm, setSearchTerm] = useSemiPersistentState('search', 'React');
 
-  const [urls, setUrls] = useState([getUrl(searchTerm,0)]);
+  const [urls, setUrls] = useState([getUrl(searchTerm, 0)]);
 
-  const handleSearch = (searchTerm,page) => {
-    const url = getUrl(searchTerm,page);
+  const handleSearch = (searchTerm, page) => {
+    const url = getUrl(searchTerm, page);
     setUrls(urls.concat(url));
   };
 
   //update the setUrl
   const handleLastSearch = (searchTerm) => {
     setSearchTerm(searchTerm);
-    handleSearch(searchTerm,0);
+    handleSearch(searchTerm, 0);
   }
 
   //runs when clicked
-  const handleMore = ()=>{
-    const lastUrl = urls[urls.length-1];
+  const handleMore = () => {
+    const lastUrl = urls[urls.length - 1];
     const searchTerm = extractSearchTerm(lastUrl);
-    handleSearch(searchTerm,stories.page+1);
+    handleSearch(searchTerm, stories.page + 1);
   }
 
   const lastSearches = getLastSearches(urls);
 
   //useReducer hook, we pass the reducer function + and the initial state
   //in useReducer we call the state updater function 'dispatcherBlaBla'
-  const [stories, dispatchStories] = useReducer(storiesReducer, { data: [],page:0, isLoading: false, isError: false });
+  const [stories, dispatchStories] = useReducer(storiesReducer, { data: [], page: 0, isLoading: false, isError: false });
 
 
   const handleSearchInput = (event) => {
@@ -154,7 +154,7 @@ const App = () => {
 
   //submit the searchTerm state
   const handleSearchSubmit = (event) => {
-    handleSearch(searchTerm,0);
+    handleSearch(searchTerm, 0);
 
     //<button type="submit"> to prevent from reloading the page
     //"prevent default behavior"
@@ -228,17 +228,19 @@ const App = () => {
       />
 
       {stories.isError && <p>Oops something went wrong...</p>}
+
+      <List
+        list={stories.data}
+        onRemoveItem={handleRemoveStory}
+      />
       {stories.isLoading ? (<p>Loading...</p>) : (
-        <List
-          list={stories.data}
-          onRemoveItem={handleRemoveStory}
-        />
+        <button
+          type="button"
+          onClick={() => handleMore()}
+        >More</button>
       )}
 
-      <button
-      type="button"
-      onClick={()=>handleMore()}
-      >More</button>
+
 
 
 
