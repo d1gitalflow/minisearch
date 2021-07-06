@@ -2,7 +2,8 @@ import { useState, useEffect, useRef, useReducer, useCallback, useMemo } from "r
 import axios from 'axios/index.js';
 import { SearchForm } from "./SearchForm";
 import { InputWithLabel } from "./InputWithLabel";
-import { List ,Item} from "./List";
+import { List, Item } from "./List";
+import { LastSearches } from "./LastSearches";
 
 //utilities such as sorting arrays
 import { sortBy } from 'lodash';
@@ -82,9 +83,23 @@ const getSumComments = (stories) => {
   );
 };
 const extractSearchTerm = (url) => url.replace(API_ENDPOINT, '');
-const getLastSearches = (urls) =>urls.slice(-6)//[a,b,c,d,e,f]
-                                .slice(0,-1)   //[a,b,c,d,e] f - is the most recent it doesn't display
-                                .map((url) => extractSearchTerm(url)); //-5 is the last five
+
+const getLastSearches = (urls) => urls.reduce((result, url, index) => {
+                           //for each element get the query line extracted
+  const searchTerm = extractSearchTerm(url);
+  if (index === 0) {//the first element of the array is the first to get concatenated into the accumulator
+    return result.concat(searchTerm);
+  }
+  const previousSearchTerm = result[result.length - 1]; //access last result of the accumulator
+  if (searchTerm === previousSearchTerm) { //if its the same return the same result to the accumulator
+    return result;
+  } else { //different add searchTerm
+    return result.concat(searchTerm);
+  }
+  //accumulator initial valor is []
+}, []).slice(-6)     
+      .slice(0, -1)   
+      .map((url) => extractSearchTerm(url)); //-5 is the last five
 
 const getUrl = (searchTerm) => `${API_ENDPOINT}${searchTerm}`;
 
@@ -100,16 +115,17 @@ const App = () => {
   const handleSearch = (searchTerm) => {
     const url = getUrl(searchTerm);
     setUrls(urls.concat(url));
-    };
+  };
 
   //update the setUrl
   const handleLastSearch = (searchTerm) => {
+    setSearchTerm(searchTerm);
     handleSearch(searchTerm);
   }
 
   const lastSearches = getLastSearches(urls);
 
- 
+
 
 
   //useReducer hook, we pass the reducer function + and the initial state
@@ -188,18 +204,10 @@ const App = () => {
 
       />
 
-      {lastSearches.map((searchTerm, index) => {
-        return (
-          <button
-            key={searchTerm + index}
-            type="button"
-            onClick={() => handleLastSearch(searchTerm)}
-          >
-            {searchTerm}
-          </button>
-        )
-      })}
-
+      <LastSearches
+      lastSearches={lastSearches}
+      onLastSearch={handleLastSearch}
+      />
 
       {stories.isError && <p>Oops something went wrong...</p>}
       {stories.isLoading ? (<p>Loading...</p>) : (
