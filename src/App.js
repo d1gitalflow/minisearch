@@ -45,7 +45,8 @@ const storiesReducer = (state, action) => {
         ...state,
         isLoading: false,
         isError: false,
-        data: action.payload,
+        data: action.payload.list,
+        page: action.payload.page,
       };
     case 'STORIES_FETCH_FAILURE':
       return {
@@ -73,19 +74,16 @@ export const SORTS = {
   POINT: (list) => sortBy(list, 'points').reverse(),
 };
 
-const REMOVE_STORY = 'REMOVE_STORY';
-const API_ENDPOINT = 'https://hn.algolia.com/api/v1/search?query=';
-
+//utilities:
 const getSumComments = (stories) => {
   return stories.data.reduce(
     (result, value) => result + value.num_comments,
     0
   );
 };
-const extractSearchTerm = (url) => url.replace(API_ENDPOINT, '');
 
 const getLastSearches = (urls) => urls.reduce((result, url, index) => {
-                           //for each element get the query line extracted
+  //for each element get the query line extracted
   const searchTerm = extractSearchTerm(url);
   if (index === 0) {//the first element of the array is the first to get concatenated into the accumulator
     return result.concat(searchTerm);
@@ -97,11 +95,24 @@ const getLastSearches = (urls) => urls.reduce((result, url, index) => {
     return result.concat(searchTerm);
   }
   //accumulator initial valor is []
-}, []).slice(-6)     
-      .slice(0, -1)   
-      .map((url) => extractSearchTerm(url)); //-5 is the last five
+}, []).slice(-6)
+  .slice(0, -1)
+  .map((url) => extractSearchTerm(url)); //-5 is the last five
 
-const getUrl = (searchTerm) => `${API_ENDPOINT}${searchTerm}`;
+/*  
+X
+https://hn.algolia.com/api/v1/search?query=react
+Y
+https://hn.algolia.com/api/v1/search? query=react &page=0 */
+
+//extract searchTerm between & and ?                                                             //delete 'query='
+const extractSearchTerm = (url) => url.substring(url.lastIndexOf('?') + 1, url.lastIndexOf('&')).replace(PARAM_SEARCH, '')
+
+const API_BASE = 'https://hn.algolia.com/api/v1';
+const API_SEARCH = '/search';
+const PARAM_SEARCH = 'query=';
+const PARAM_PAGE = 'page=';
+const getUrl = (searchTerm,page) => `${API_BASE}${API_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_PAGE}${page}`;
 
 const App = () => {
 
@@ -110,27 +121,31 @@ const App = () => {
   //custom hook
   const [searchTerm, setSearchTerm] = useSemiPersistentState('search', 'React');
 
-  const [urls, setUrls] = useState([getUrl(searchTerm)]);
+  const [urls, setUrls] = useState([getUrl(searchTerm,0)]);
 
-  const handleSearch = (searchTerm) => {
-    const url = getUrl(searchTerm);
+  const handleSearch = (searchTerm,page) => {
+    const url = getUrl(searchTerm,page);
     setUrls(urls.concat(url));
   };
 
   //update the setUrl
   const handleLastSearch = (searchTerm) => {
     setSearchTerm(searchTerm);
-    handleSearch(searchTerm);
+    handleSearch(searchTerm,0);
+  }
+
+  //runs when clicked
+  const handleMore = ()=>{
+    const lastUrl = urls[urls.length-1];
+    const searchTerm = extractSearchTerm(lastUrl);
+    handleSearch(searchTerm,stories.page+1);
   }
 
   const lastSearches = getLastSearches(urls);
 
-
-
-
   //useReducer hook, we pass the reducer function + and the initial state
   //in useReducer we call the state updater function 'dispatcherBlaBla'
-  const [stories, dispatchStories] = useReducer(storiesReducer, { data: [], isLoading: false, isError: false });
+  const [stories, dispatchStories] = useReducer(storiesReducer, { data: [],page:0, isLoading: false, isError: false });
 
 
   const handleSearchInput = (event) => {
@@ -139,7 +154,7 @@ const App = () => {
 
   //submit the searchTerm state
   const handleSearchSubmit = (event) => {
-    handleSearch(searchTerm);
+    handleSearch(searchTerm,0);
 
     //<button type="submit"> to prevent from reloading the page
     //"prevent default behavior"
@@ -160,7 +175,10 @@ const App = () => {
       const result = await axios.get(lastUrl);
       dispatchStories({
         type: 'STORIES_FETCH_SUCCESS',
-        payload: result.data.hits,
+        payload: {
+          list: result.data.hits,
+          page: result.data.page
+        }
       });
     }
     catch {
@@ -184,7 +202,7 @@ const App = () => {
 
     //we pass the item as a payload
     dispatchStories({
-      type: REMOVE_STORY,
+      type: 'REMOVE_STORY',
       payload: item
     })
 
@@ -205,8 +223,8 @@ const App = () => {
       />
 
       <LastSearches
-      lastSearches={lastSearches}
-      onLastSearch={handleLastSearch}
+        lastSearches={lastSearches}
+        onLastSearch={handleLastSearch}
       />
 
       {stories.isError && <p>Oops something went wrong...</p>}
@@ -216,6 +234,11 @@ const App = () => {
           onRemoveItem={handleRemoveStory}
         />
       )}
+
+      <button
+      type="button"
+      onClick={()=>handleMore()}
+      >More</button>
 
 
 
