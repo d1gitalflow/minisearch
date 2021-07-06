@@ -1,0 +1,61 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Item renders snapshot 1`] = `
+<li>
+  <span
+    style="width: 40%;"
+  >
+    <a
+      href="https://reactjs.org/"
+    >
+      React
+    </a>
+  </span>
+  <span
+    style="width: 30%;"
+  >
+    Jordan Walke
+  </span>
+  <span
+    style="width: 10%;"
+  >
+    3
+  </span>
+  <span
+    style="width: 10%;"
+  >
+    4
+  </span>
+  <span
+    style="width: 10%;"
+  >
+    <button
+      type="button"
+    >
+      Submit
+    </button>
+  </span>
+</li>
+`;
+
+exports[`SearchForm renders snapshot 1`] = `
+<form>
+  <label
+    for="search"
+  >
+    <strong>
+      Search:
+    </strong>
+  </label>
+  <input
+    id="search"
+    type="text"
+    value="React"
+  />
+  <button
+    type="submit"
+  >
+    SubmitYo
+  </button>
+</form>
+`;
