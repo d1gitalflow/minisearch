@@ -4,13 +4,13 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ## Available Scripts
 
-### `npm install` - Install dependencies
+#### `npm install` - Install dependencies
 
-### `npm start` - Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+#### `npm start` - Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
-### `npm test` - Run Jest tests WIP
+#### `npm test` - Run Jest tests WIP
 
-### `npm run build` - Build project: minifier, packaging, etc
+#### `npm run build` - Build project: minifier, packaging, etc
 
 ## About the project:
 ```
