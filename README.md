@@ -32,6 +32,7 @@ It sorts (also with reverse sort) results by:
 -It extends more results by clicking the 'More' button.
 -Has React performance enhancements.
 -Can dismiss a story/post
+-Count total comments for each displayed 20 results. They accumulate as we click 'More' to expand.
 ```
 
 ## Dependencies:
