@@ -62,7 +62,7 @@ export const Item = ({ item, onRemoveItem }) => {
             <button type="button" onClick={() => onRemoveItem(item)}
 
             >
-                Submit
+                Dismiss
             </button>
         </span>
     </li>)

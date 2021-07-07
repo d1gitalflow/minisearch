@@ -15,7 +15,7 @@ export const SearchForm = ({ onSearchSubmit, onSearchInput, searchTerm }) => {
           
           type="submit"
           disabled={!searchTerm}
-        >SubmitYo
+        >Search
         </button>
       </form>
     )
